@@ -1,5 +1,6 @@
 #include "chip8.hpp"
 
+#include <cstdio>
 #include <cstdlib>
 
 #include <algorithm>
@@ -34,7 +35,7 @@ Chip8& Chip8::reset() {
   soundTimer = 0;
 
   // draw flag
-  drawFlag = false;
+  _draw = false;
 
   return *this;
 }
@@ -45,8 +46,8 @@ Chip8& Chip8::load(std::array<unsigned char, 4096>& game) {
 }
 
 bool Chip8::update() {
-  // reset drawFlag
-  drawFlag = false;
+  // reset draw
+  _draw = false;
 
   // fetch opcode
   opcode = memory[pc] << 8 | memory[pc + 1];
@@ -58,7 +59,7 @@ bool Chip8::update() {
       switch (opcode & 0x000F) {
         case 0x0000: // 00E0: clears the screen
           mGFX.fill(0);
-          drawFlag = true;
+          _draw = true;
           break;
 
         case 0x000E: // 00EE: returns from subroutine
@@ -120,6 +121,7 @@ bool Chip8::update() {
       break;
 
     case 0xC000: // Cxnn: Sets Vx to a random number AND nn.
+      V[(opcode & 0x0F00) >> 8] = (rand() % 0xFF) & (opcode & 0x00FF);
       break;
 
     case 0xD000: // Dxyn: Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
@@ -170,9 +172,11 @@ bool Chip8::update() {
           break;
 
         case 0x0055: // Fx55: Stores registers V0 through Vx in memory starting at location I.
+          std::copy(V.begin(), V.begin() + ((opcode & 0x0F00) >> 8), memory.begin() + I);
           break;
 
         case 0x0065: // Fx65: Reads registers V0 through Vx from memory starting at location I.
+          std::copy(memory.begin() + I, memory.begin() + I + ((opcode & 0x0F00) >> 8), V.begin());
           break;
 
         default:
@@ -186,5 +190,13 @@ bool Chip8::update() {
   // update program counter
   pc += 2;
 
-  return drawFlag;
+  return _draw;
+}
+
+bool Chip8::draw() {
+  return _draw;
+}
+
+bool Chip8::sound() {
+  return soundTimer != 0;
 }

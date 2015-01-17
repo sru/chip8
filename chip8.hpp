@@ -29,6 +29,9 @@ class Chip8 {
   // stacks
   std::stack<unsigned short> stack;
 
+  // draw flag
+  bool _draw;
+
 public:
   Chip8();
 
@@ -38,7 +41,8 @@ public:
   Chip8& reset();
 
   bool update(); // progress one opcode and return whether to draw or not
-  bool drawFlag; // if you need draw flag again
+  bool draw(); // if you need draw flag again
+  bool sound(); // whether you have to make sound or not
 
   std::array<bool, 16> key; // keys pressed -> true
 
