@@ -30,13 +30,14 @@ class Chip8 {
   std::stack<unsigned short> stack;
 
   // draw flag
-  bool _draw;
+  bool mDraw;
 
 public:
   Chip8();
+  Chip8(std::array<unsigned char, 3584>&);
 
   // load game into memory. returns self
-  Chip8& load(std::array<unsigned char, 4096>&);
+  Chip8& load(std::array<unsigned char, 3584>&);
 
   Chip8& reset();
 
