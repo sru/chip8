@@ -2,6 +2,7 @@
 #define __CHIP8_HPP
 
 #include <array>
+#include <ostream>
 #include <stack>
 
 class Chip8 {
@@ -54,6 +55,8 @@ public:
   unsigned char gfx(unsigned int x) const {
     return mGFX[x];
   }
+
+  void debug(std::ostream&);
 };
 
 #endif

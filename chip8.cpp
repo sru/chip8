@@ -3,6 +3,8 @@
 
 #include <algorithm>
 #include <array>
+#include <ostream>
+#include <iomanip>
 
 #include "chip8.hpp"
 
@@ -296,4 +298,27 @@ bool Chip8::draw() {
 
 bool Chip8::sound() {
   return soundTimer != 0;
+}
+
+void Chip8::debug(std::ostream& os) {
+  std::ios::fmtflags f(os.flags());
+
+  os << std::setfill('0') << std::setw(4) << std::hex << std::uppercase;
+  os << "pc: 0x" << (int)pc << "\n";
+  os << "opcode: 0x" << (int)opcode << "\n";
+  os << "I: 0x" << (int)I << "\n";
+  os << "V: ";
+  for (int i = 0; i < 16; ++i)
+    os << std::setw(2) << (int)V[i] << " ";
+  os << "\n";
+  for (int row = 0; row < 32; ++row) {
+    for (int col = 0; col < 64; ++col) {
+      if (mGFX[row * 64 + col] == 0) os << "0";
+      else os << " ";
+    }
+    os << "\n";
+  }
+  os << std::endl;
+
+  os.flags(f);
 }
