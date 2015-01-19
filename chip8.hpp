@@ -47,8 +47,12 @@ public:
 
   std::array<bool, 16> key; // keys pressed -> true
 
-  unsigned char gfx(unsigned int row, unsigned int col) const {
-    return mGFX[64 * row + col];
+  unsigned char gfx(unsigned int x, unsigned int y) const {
+    return mGFX[64 * y + x];
+  }
+
+  unsigned char gfx(unsigned int x) const {
+    return mGFX[x];
   }
 };
 
