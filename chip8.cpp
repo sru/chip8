@@ -93,13 +93,13 @@ bool Chip8::update() {
   switch (opcode & 0xF000) {
 
     case 0x0000:
-      switch (opcode & 0x000F) {
-        case 0x0000: // 00E0: Clear the screen
-          mGFX.fill(0);
+      switch (opcode & 0x00FF) {
+        case 0x00E0: // 00E0: Clear the display
+          mGFX.fill(0x0);
           mDraw = true;
           break;
 
-        case 0x000E: // 00EE: Return from subroutine
+        case 0x00EE: // 00EE: Return from subroutine
           pc = stack.top();
           stack.pop();
           break;
@@ -111,30 +111,32 @@ bool Chip8::update() {
 
     case 0x1000: // 1nnn: Jump to address nnn.
       pc = opcode & 0x0FFF;
+      pc -= 2;
       break;
 
     case 0x2000: // 2nnn: Call subroutine at nnn.
       stack.push(pc);
       pc = opcode & 0x0FFF;
+      pc -= 2;
       break;
 
-    case 0x3000: // 3xnn: Skip the next instruction if Vx equals nn.
+    case 0x3000: // 3xkk: Skip next instruction if Vx == kk
       if (V[x] == (opcode & 0x00FF)) pc += 2;
       break;
 
-    case 0x4000: // 4xnn: Skip the next instruction if Vx doesn't equal nn.
+    case 0x4000: // 4xkk: Skip next instruction if Vx != kk
       if (V[x] != (opcode & 0x00FF)) pc += 2;
       break;
 
-    case 0x5000: // 5xy0: Skip the next instruction if Vx equals Vy.
+    case 0x5000: // 5xy0: Skip next instruction if Vx == Vy.
       if (V[x] == V[y]) pc += 2;
       break;
 
-    case 0x6000: // 6xnn: Set Vx to nn.
+    case 0x6000: // 6xkk: Set Vx = kk.
       V[x] = opcode & 0x00FF;
       break;
 
-    case 0x7000: // 7xnn: Add nn to Vx.
+    case 0x7000: // 7xkk: Add kk to Vx.
       V[x] += opcode & 0x00FF;
       break;
 
@@ -169,7 +171,7 @@ bool Chip8::update() {
           break;
 
         case 0x0006: // 8xy6: Shift Vx right by one. VF = least signifcant bit of Vx before the shift.
-          V[0xF] = V[x] & 1;
+          V[0xF] = V[x] & 0x1;
           V[x] >>= 1;
           break;
 
@@ -180,7 +182,7 @@ bool Chip8::update() {
           break;
 
         case 0x000E: // 8xyE: Shift Vx left by one. VF = most significant bit of Vx before the shift.
-          V[0xF] = (V[x] & 0x80) >> 7;
+          V[0xF] = V[x] >> 7;
           V[x] <<= 1;
           break;
 
@@ -189,7 +191,7 @@ bool Chip8::update() {
       }
       break;
 
-    case 0x9000: // 9xy0: Skip the next instruction if Vx doesn't equal Vy.
+    case 0x9000: // 9xy0: Skip next instruction if Vx != Vy.
       if (V[x] != V[y]) pc += 2;
       break;
 
@@ -199,17 +201,18 @@ bool Chip8::update() {
 
     case 0xB000: // Bnnn: Jump to the address nnn plus V0.
       pc = (opcode & 0x0FFF) + V[0];
+      pc -= 2;
       break;
 
-    case 0xC000: // Cxnn: Set Vx to a random number AND nn.
-      V[x] = (rand() % 0xFF) & (opcode & 0x00FF);
+    case 0xC000: // Cxkk: Set Vx = random byte AND kk.
+      V[x] = (rand() % 0x100) & (opcode & 0x00FF);
       break;
 
     case 0xD000: // Dxyn: Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
       for (int row = 0; row < (opcode & 0x000F); ++row) {
         for (int col = 0; col < 8; ++col) {
-          if (memory[I + row] & (0x80 >> col) != 0) {
-            if (mGFX[((V[y] + row) * 64 + V[x] + col)] == 1)
+          if ((memory[I + row] & (0x80 >> col)) != 0) {
+            if (mGFX[(V[y] + row) * 64 + V[x] + col] == 1)
               V[0xF] = 1;
             mGFX[((V[y] + row) * 64 + V[x] + col)] ^= 1;
           }
@@ -240,7 +243,7 @@ bool Chip8::update() {
           break;
 
         case 0x000A: // Fx0A: A key press is awaited, and then store in Vx.
-          if (std::none_of(key.begin(), key.end(), [](bool b) { return b; })) pc -= 2;
+          if (std::none_of(key.begin(), key.end(), [](bool b) { return b; })) return false;
           else V[x] = std::find(key.begin(), key.end(), true) - key.begin();
           break;
 
@@ -267,16 +270,19 @@ bool Chip8::update() {
           break;
 
         case 0x0055: // Fx55: Store registers V0 through Vx in memory starting at location I.
-          std::copy(V.begin(), V.begin() + (x), memory.begin() + I);
+          for (int i = 0; i <= x; ++i)
+            memory[I + i] = V[i];
           break;
 
         case 0x0065: // Fx65: Read registers V0 through Vx from memory starting at location I.
-          std::copy(memory.begin() + I, memory.begin() + I + (x), V.begin());
+          for (int i = 0; i <= x; ++i)
+            V[i] = memory[I + i];
           break;
 
         default:
           printf("Unknown opcode [0xF000]: 0x%X\n", opcode);
       }
+      break;
 
     default:
       printf("Unknown opcode: 0x%X\n", opcode);
