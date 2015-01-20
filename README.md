@@ -3,7 +3,7 @@ Chip8 emulator written in C++.
 
 ## Dependancies
 - C++11
-- SFML (for main only)
+- SFML (for main.cpp only)
 
 ## Compilation
 This uses SFML for graphics, window, and keyboard management, so you need to specify as library when compiling. For example:
@@ -22,6 +22,7 @@ chip8 rom\_to\_play
 - More bug fixes
 - seg fault on VERS
 - sound
+- Super Chip8 instructions
 
 ## License
 See [LICENSE](LICENSE).
