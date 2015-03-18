@@ -18,6 +18,9 @@ Chip8 emulator itself is entirely written only using C++ and STL.
 chip8 rom\_to\_play
 ```
 
+## Games
+You can get several games from [Zophar's Domain](http://www.zophar.net/pdroms/chip8/chip-8-games-pack.html).
+
 ## Todo
 - More bug fixes
 - seg fault on VERS
